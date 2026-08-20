@@ -152,3 +152,34 @@ struct TamagochiComplicationBundle: WidgetBundle {
         TamagochiComplicationWidget()
     }
 }
+
+// MARK: - Previews (para probar visualmente en el canvas de Xcode)
+
+#Preview("Circular", as: .accessoryCircular) {
+    TamagochiComplicationWidget()
+} timeline: {
+    PetEntry(date: .now, pet: TamagochiComplicationBundle.samplePet)
+}
+
+#Preview("Corner", as: .accessoryCorner) {
+    TamagochiComplicationWidget()
+} timeline: {
+    PetEntry(date: .now, pet: TamagochiComplicationBundle.samplePet)
+}
+
+#Preview("Inline", as: .accessoryInline) {
+    TamagochiComplicationWidget()
+} timeline: {
+    PetEntry(date: .now, pet: TamagochiComplicationBundle.samplePet)
+}
+
+private extension TamagochiComplicationBundle {
+    static var samplePet: Pet {
+        var pet = Pet(name: "Tama")
+        pet.hunger = 40
+        pet.happiness = 70
+        pet.energy = 65
+        pet.hygiene = 22
+        return pet
+    }
+}
