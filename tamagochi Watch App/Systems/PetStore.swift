@@ -1,15 +1,14 @@
 import Foundation
 import Observation
 import WatchKit
+import WidgetKit
 
-/// Fuente de verdad de la mascota: persiste en `UserDefaults`, avanza la
+/// Fuente de verdad de la mascota: persiste en el App Group, avanza la
 /// simulación y expone las acciones del jugador con su háptica.
 @MainActor
 @Observable
 final class PetStore {
 
-    /// Clave de almacenamiento en `UserDefaults`.
-    private static let storageKey = "pet.v1"
     /// Nombre por defecto de una mascota nueva.
     private static let defaultName = "Tama"
 
@@ -25,19 +24,26 @@ final class PetStore {
 
     // MARK: - Persistencia
 
-    /// Carga la mascota guardada. Devuelve `nil` ante datos ausentes o corruptos;
-    /// nunca lanza ni crashea.
+    /// Carga la mascota del App Group. Si no hay, intenta migrar desde el
+    /// almacenamiento antiguo (`UserDefaults.standard`). Nunca crashea.
     private static func loadPet() -> Pet? {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
-        return try? JSONDecoder().decode(Pet.self, from: data)
+        if let pet = SharedStorage.loadPet() { return pet }
+
+        // Migración: datos guardados antes del App Group.
+        guard let data = UserDefaults.standard.data(forKey: SharedStorage.petKey),
+              let legacy = try? JSONDecoder().decode(Pet.self, from: data) else {
+            return nil
+        }
+        SharedStorage.save(legacy)
+        UserDefaults.standard.removeObject(forKey: SharedStorage.petKey)
+        return legacy
     }
 
     private func save() {
-        if let data = try? JSONEncoder().encode(pet) {
-            UserDefaults.standard.set(data, forKey: Self.storageKey)
-        }
-        // Cada cambio de estado reprograma los avisos.
+        SharedStorage.save(pet)
+        // Cada cambio de estado reprograma los avisos y refresca la complicación.
         notifications.reschedule(for: pet)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: - Ciclo de vida
@@ -84,7 +90,7 @@ final class PetStore {
 
     /// Borra el guardado y arranca con una mascota nueva.
     func reset() {
-        UserDefaults.standard.removeObject(forKey: Self.storageKey)
+        SharedStorage.defaults.removeObject(forKey: SharedStorage.petKey)
         pet = Pet(name: Self.defaultName)
         save()
     }
