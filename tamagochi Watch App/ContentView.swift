@@ -15,29 +15,41 @@ struct ContentView: View {
     @State private var forcedMoodTask: Task<Void, Never>?
 
     var body: some View {
-        Group {
-            if store.pet.isDead {
-                DeathView(store: store)
-            } else {
-                TabView(selection: $selectedPage) {
-                    PetView(pet: store.pet, forcedMood: forcedMood)
-                        .tag(0)
-                    StatsView(pet: store.pet)
-                        .tag(1)
-                    ActionsView(store: store) { mood in
-                        showActionMood(mood)
-                    }
-                    .tag(2)
+        ZStack {
+            Group {
+                if store.pet.isDead {
+                    DeathView(store: store)
+                } else {
+                    TabView(selection: $selectedPage) {
+                        PetView(pet: store.pet, forcedMood: forcedMood)
+                            .tag(0)
+                        StatsView(pet: store.pet)
+                            .tag(1)
+                        ActionsView(store: store) { mood in
+                            showActionMood(mood)
+                        }
+                        .tag(2)
 
-                    #if DEBUG
-                    DebugView(store: store)
-                        .tag(3)
-                    #endif
+                        #if DEBUG
+                        DebugView(store: store)
+                            .tag(3)
+                        #endif
+                    }
+                    .tabViewStyle(.verticalPage)
                 }
-                .tabViewStyle(.verticalPage)
+            }
+            .background(Color.black)
+
+            // Pantalla explicativa propia antes del permiso del sistema.
+            if store.notifications.needsPrimer {
+                NotificationPrimerView(scheduler: store.notifications) {
+                    store.notifications.reschedule(for: store.pet)
+                }
             }
         }
-        .background(Color.black)
+        .task {
+            await store.notifications.refreshPrimerState()
+        }
     }
 
     /// Fuerza el sprite del mood de la acción, vuelve a la página 1 y lo

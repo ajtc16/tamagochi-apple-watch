@@ -4,6 +4,7 @@ import WatchKit
 
 /// Fuente de verdad de la mascota: persiste en `UserDefaults`, avanza la
 /// simulación y expone las acciones del jugador con su háptica.
+@MainActor
 @Observable
 final class PetStore {
 
@@ -13,6 +14,9 @@ final class PetStore {
     private static let defaultName = "Tama"
 
     private(set) var pet: Pet
+
+    /// Programador de notificaciones locales, enganchado a cada cambio.
+    let notifications = NotificationScheduler()
 
     init() {
         // Si no hay nada guardado o el JSON está corrupto, empezamos de cero.
@@ -29,8 +33,11 @@ final class PetStore {
     }
 
     private func save() {
-        guard let data = try? JSONEncoder().encode(pet) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        if let data = try? JSONEncoder().encode(pet) {
+            UserDefaults.standard.set(data, forKey: Self.storageKey)
+        }
+        // Cada cambio de estado reprograma los avisos.
+        notifications.reschedule(for: pet)
     }
 
     // MARK: - Ciclo de vida
