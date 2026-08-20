@@ -28,6 +28,11 @@ struct ContentView: View {
                         showActionMood(mood)
                     }
                     .tag(2)
+
+                    #if DEBUG
+                    DebugView(store: store)
+                        .tag(3)
+                    #endif
                 }
                 .tabViewStyle(.verticalPage)
             }

@@ -81,4 +81,28 @@ final class PetStore {
         pet = Pet(name: Self.defaultName)
         save()
     }
+
+    // MARK: - Depuración
+
+    #if DEBUG
+    /// Adelanta el reloj del juego restando tiempo a `lastSeen` y avanzando.
+    func debugAdvance(by interval: TimeInterval) {
+        pet.lastSeen -= interval
+        pet.advance()
+        save()
+    }
+
+    /// Deja a la mascota lo más sucia posible.
+    func debugMakeFilthy() {
+        pet.hygiene = Balance.statRange.lowerBound
+        pet.poopCount = Balance.maxPoopCount
+        save()
+    }
+
+    /// Mata a la mascota directamente (para probar `DeathView`).
+    func debugKill() {
+        pet.isDead = true
+        save()
+    }
+    #endif
 }
