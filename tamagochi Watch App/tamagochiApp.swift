@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct tamagochi_Watch_AppApp: App {
+    @State private var store = PetStore()
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(store: store)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                store.refresh()
+            }
         }
     }
 }
