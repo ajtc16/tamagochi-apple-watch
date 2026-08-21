@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
+
+# Swift Package Manager
+.build/
+
+# Python tooling (script de sprites)
+.venv/
+__pycache__/
+
+# Salida generada del pipeline de sprites (el arte crudo sí se versiona)
+sprites_clean/
